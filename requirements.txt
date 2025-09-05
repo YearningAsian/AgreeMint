@@ -1,0 +1,3 @@
+# Core dependencies for AgreeMint AI Contract Checker
+click>=8.0.0
+requests>=2.25.0
