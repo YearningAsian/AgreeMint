@@ -1,0 +1,2 @@
+# AgreeMint
+AI Contract Checker
