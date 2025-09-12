@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgreeMint - AI Contract Checker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1 class="logo">AgreeMint</h1>
+            <p class="tagline">AI Contract Checker</p>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="container">
+            <div class="content-grid">
+                <!-- File Upload Section -->
+                <section class="upload-section">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">📄</div>
+                        <h2>Upload Contract</h2>
+                        <p>Drag and drop your contract file here or click to browse</p>
+                        <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.txt" hidden>
+                        <button class="upload-btn" id="uploadBtn">Choose File</button>
+                    </div>
+                </section>
+
+                <!-- File Display Section -->
+                <section class="file-display">
+                    <h3>Uploaded File</h3>
+                    <div class="file-preview" id="filePreview">
+                        <div class="placeholder">
+                            <div class="placeholder-icon">📋</div>
+                            <p>No file uploaded yet</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Analysis Results Sidebar -->
+                <aside class="analysis-sidebar">
+                    <h3>Analysis Results</h3>
+                    <div class="analysis-content" id="analysisContent">
+                        <div class="placeholder">
+                            <div class="placeholder-icon">🤖</div>
+                            <p>Upload a contract to see AI analysis</p>
+                        </div>
+                        <div class="analysis-sections">
+                            <div class="analysis-item">
+                                <h4>Key Terms</h4>
+                                <div class="analysis-placeholder">Analysis will appear here...</div>
+                            </div>
+                            <div class="analysis-item">
+                                <h4>Risk Assessment</h4>
+                                <div class="analysis-placeholder">Risk analysis will appear here...</div>
+                            </div>
+                            <div class="analysis-item">
+                                <h4>Recommendations</h4>
+                                <div class="analysis-placeholder">AI recommendations will appear here...</div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+            </div>
+        </div>
+    </main>
+
+    <!-- Contact Sidebar (Bottom) -->
+    <footer class="contact-sidebar">
+        <div class="container">
+            <div class="contact-content">
+                <div class="contact-section">
+                    <h3>Contact Us</h3>
+                    <div class="contact-info">
+                        <div class="contact-item">
+                            <span class="contact-icon">📧</span>
+                            <span>support@agreemint.com</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">📞</span>
+                            <span>+1 (555) 123-4567</span>
+                        </div>
+                        <div class="contact-item">
+                            <span class="contact-icon">💬</span>
+                            <span>Live Chat Available</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="contact-section">
+                    <h3>Quick Help</h3>
+                    <div class="help-links">
+                        <a href="#" class="help-link">How to Upload</a>
+                        <a href="#" class="help-link">Understanding Results</a>
+                        <a href="#" class="help-link">FAQ</a>
+                        <a href="#" class="help-link">Privacy Policy</a>
+                    </div>
+                </div>
+                <div class="contact-section">
+                    <h3>Support</h3>
+                    <button class="contact-btn">Get Help</button>
+                    <button class="contact-btn secondary">Schedule Demo</button>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
