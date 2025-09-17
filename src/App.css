@@ -1,42 +1,48 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import "tailwindcss";
+
+/* App.css */
+
+/* Main footer wrapper */
+.footer {
+  @apply w-full bg-stone-400 text-black font-['Noto_Sans_JP'];
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Primary container inside the footer */
+.footer-container {
+  @apply container mx-auto flex min-h-[606px] flex-col justify-between p-10 md:p-20;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* "Connect with us!" title */
+.footer-title {
+  @apply mb-12 text-6xl font-black md:text-8xl;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* Wrapper for the two contact cards */
+.contacts-wrapper {
+  @apply flex flex-col justify-between gap-12 md:flex-row;
 }
 
-.card {
-  padding: 2em;
+/* Styles for an individual contact card */
+.contact-card {
+  @apply flex flex-col gap-4;
 }
 
-.read-the-docs {
-  color: #888;
+/* Base style for a contact's name */
+.contact-name {
+  @apply text-4xl font-bold md:text-5xl;
+}
+
+/* Modifier for Pratyusha's name to add the text shadow */
+.contact-name-shadow {
+  @apply [text-shadow:_0px_4px_4px_rgb(0_0_0_/_0.25)];
+}
+
+/* Container for the social media icons */
+.icon-group {
+  @apply flex items-center gap-4;
+}
+
+/* Copyright text at the bottom */
+.footer-copyright {
+  @apply mt-16 text-3xl md:text-5xl;
 }
