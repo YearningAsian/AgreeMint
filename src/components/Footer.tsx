@@ -8,13 +8,13 @@ const Footer: React.FC = () => {
       <div className="w-full flex min-h-[400px] flex-col justify-between p-6 md:p-12 lg:p-20">
         
         {/* Title */}
-        <div>
-          <h2 className="mb-8 text-4xl font-extrabold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl [text-shadow:_0_4px_4px_rgb(0_0_0_/_0.25)]">
+        <div className="flex flex-col items-center">
+          <h2 className="mb-8 text-4xl font-extrabold tracking-tight sm:text-4xl md:text-5xl lg:text-6xl [text-shadow:_0_4px_4px_rgb(0_0_0_/_0.25)]">
             Connect with us!
           </h2>
 
           {/* Contact Blocks */}
-          <div className="flex flex-col gap-10 md:flex-row">
+          <div className="flex justify-center flex-col gap-10 md:flex-row">
             
             {/* Colin */}
             <div className="flex flex-col gap-3">
@@ -70,7 +70,7 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Footer Bottom */}
-        <div className="mt-12 text-xl font-medium sm:text-3xl md:text-4xl lg:text-5xl">
+        <div className="mt-12 text-xl font-medium sm:text-xl md:text-xl lg:text-2xl">
           © AgreeMint 2025
         </div>
 
