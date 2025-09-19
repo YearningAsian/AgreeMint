@@ -1,5 +1,8 @@
-// src/components/Main.tsx
-import React, { useState, useRef } from 'react';
+import { useState, useRef } from 'react';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Use this new line to point to your local worker file
+pdfjsLib.GlobalWorkerOptions.workerSrc = '../../public/pdf.worker.min.mjs';
 
 // A custom hook for a more complex state if needed in the future
 const useContractProcessor = () => {
@@ -20,8 +23,6 @@ const useContractProcessor = () => {
     };
 };
 
-
-
 // Radio button component for mode selection
 const ModeRadio = ({ name, value, label, checked, onChange }) => (
     <label className="flex flex-col items-center space-y-2 cursor-pointer text-lg md:text-2xl lg:text-3xl font-normal z-10">
@@ -40,6 +41,10 @@ export default function Main() {
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef(null);
 
+    const [contractText, setContractText] = useState('');
+    const [analysis, setAnalysis] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
     const modes = [
         { label: 'Complex', value: 'Complex' },
         { label: '', value: 'Thorough' },
@@ -47,16 +52,55 @@ export default function Main() {
         { label: 'Basic', value: 'Basic' },
     ];
 
+    const getAnalysis = async (text, analysisMode, analysisStyle) => {
+        setIsLoading(true);
+        setAnalysis('');
+
+        console.log("Sending text to AI for analysis:", { analysisMode, analysisStyle });
+
+        // --- REPLACE THIS SIMULATION WITH A REAL API CALL ---
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const mockAnalysis = `This is a mock AI analysis in a ${analysisStyle} style and ${analysisMode} complexity. The document appears to be a standard non-disclosure agreement with clauses covering confidential information, obligations of the receiving party, and term duration. Key areas to review include the definition of "Confidential Information" and the specified term length of the agreement.`;
+        // ---------------------------------------------------
+
+        setAnalysis(mockAnalysis);
+        setIsLoading(false);
+    };
+
     const processFile = (file) => {
-        const allowedExtensions = ['.pdf', '.docx', '.txt'];
         const fileExtension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
 
-        if (allowedExtensions.includes(fileExtension)) {
-             console.log("File accepted:", file.name);
-             // Logic to read/upload file goes here.
-        } else {
-             console.log("Invalid file type:", file.name);
-             // You could set an error state here to inform the user.
+        if (fileExtension === '.pdf') {
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                const typedArray = new Uint8Array(event.target.result as ArrayBuffer);
+                try {
+                    const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                    let fullText = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        fullText += textContent.items.map(item => (item as any).str).join(' ') + '\n';
+                    }
+                    setContractText(fullText);
+                    getAnalysis(fullText, mode, style);
+                } catch (error) {
+                    console.error("Error parsing PDF:", error);
+                    setContractText("Could not read the PDF file.");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        } else if (fileExtension === '.txt') {
+             const reader = new FileReader();
+             reader.onload = (event) => {
+                const text = event.target.result as string;
+                setContractText(text);
+                getAnalysis(text, mode, style);
+             }
+             reader.readAsText(file);
+        }
+        else {
+             setContractText(`File type "${fileExtension}" is not yet supported.`);
         }
     };
     
@@ -74,7 +118,7 @@ export default function Main() {
 
     const handleDragOver = (e) => {
         e.preventDefault();
-        e.stopPropagation(); // Necessary to allow dropping
+        e.stopPropagation();
     };
 
     const handleDrop = (e) => {
@@ -115,7 +159,7 @@ export default function Main() {
                     ref={fileInputRef}
                     onChange={handleFileSelect}
                     className="hidden"
-                    accept=".pdf,.docx,.txt"
+                    accept=".pdf,.txt"
                 />
                 <h1 className="text-center text-2xl md:text-3xl lg:text-4xl font-normal mb-2 pointer-events-none">
                     Click here or drop contract to upload!
@@ -130,18 +174,18 @@ export default function Main() {
                 {/* Uploaded Contract Panel */}
                 <div className="w-full h-[936px] bg-white rounded-[30px] shadow-lg border-[5px] border-black p-6 flex flex-col">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Uploaded Contract</h2>
-                    <div className="flex-grow bg-gray-50 rounded-lg p-4 text-gray-500">
-                        {/* Content of the uploaded contract will be displayed here */}
-                        <p>Your document content will appear here...</p>
+                    <div className="flex-grow bg-gray-50 rounded-lg p-4 overflow-auto">
+                        <pre className="whitespace-pre-wrap text-sm text-gray-700">{contractText || "Your document content will appear here..."}</pre>
                     </div>
                 </div>
 
                 {/* Analysis and Suggestions Panel */}
                 <div className="w-full h-[936px] bg-white rounded-[30px] shadow-lg border-[5px] border-black p-6 flex flex-col relative">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Analysis and Suggestions</h2>
-                    <div className="flex-grow bg-gray-50 rounded-lg p-4 text-gray-500">
-                        {/* AI analysis and suggestions will be displayed here */}
-                        <p>Analysis of your document will appear here...</p>
+                    <div className="flex-grow bg-gray-50 rounded-lg p-4 overflow-auto">
+                        <p className="whitespace-pre-wrap text-sm text-gray-700">
+                            {isLoading ? "Analyzing..." : (analysis || "Analysis of your document will appear here...")}
+                        </p>
                     </div>
                     <button 
                         onClick={handleDownload}
