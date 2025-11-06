@@ -1,5 +1,16 @@
 // src/components/Main.tsx
 import React, { useState, useRef } from 'react';
+// AiTester removed — analysis now runs automatically when a file is uploaded
+import extractTextFromFile from '../utils/fileText';
+
+// Props for ModeRadio
+type ModeRadioProps = {
+    name: string;
+    value: string;
+    label: string;
+    checked: boolean;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+};
 
 // A custom hook for a more complex state if needed in the future
 const useContractProcessor = () => {
@@ -23,13 +34,13 @@ const useContractProcessor = () => {
 
 
 // Radio button component for mode selection
-const ModeRadio = ({ name, value, label, checked, onChange }) => (
-    <label className="flex flex-col items-center space-y-2 cursor-pointer text-lg md:text-2xl lg:text-3xl font-normal z-10">
+const ModeRadio: React.FC<ModeRadioProps> = ({ name, value, label, checked, onChange }) => (
+    <label className="flex items-center space-x-3 cursor-pointer text-xl md:text-3xl lg:text-5xl font-normal">
         <span className="bg-white px-2 h-10 flex items-center">{label}</span>
         <div className="relative">
             <input type="radio" name={name} value={value} checked={checked} onChange={onChange} className="sr-only" />
-            <div className={`w-6 h-6 md:w-8 md:h-8 rounded-full border-2 border-black flex items-center justify-center transition-colors duration-200 ${checked ? 'bg-black' : 'bg-white'}`}>
-                {checked && <div className="w-3 h-3 md:w-4 md:h-4 rounded-full bg-white"></div>}
+            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full border border-black flex items-center justify-center transition-colors duration-200 ${checked ? 'bg-black' : 'bg-white'}`}>
+                {checked && <div className="w-4 h-4 md:w-5 md:h-5 rounded-full bg-white"></div>}
             </div>
         </div>
     </label>
@@ -38,7 +49,7 @@ const ModeRadio = ({ name, value, label, checked, onChange }) => (
 export default function Main() {
     const { mode, setMode, style, setStyle, handleDownload } = useContractProcessor();
     const [isDragging, setIsDragging] = useState(false);
-    const fileInputRef = useRef(null);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const modes = [
         { label: 'Complex', value: 'Complex' },
@@ -46,38 +57,88 @@ export default function Main() {
         { label: '', value: 'Medium' },
         { label: 'Basic', value: 'Basic' },
     ];
+    const [uploadedText, setUploadedText] = useState<string>('');
+    const [uploadedName, setUploadedName] = useState<string | null>(null);
+    const [analysisText, setAnalysisText] = useState<string>('');
+    const [analysisLoading, setAnalysisLoading] = useState<boolean>(false);
+    const [analysisError, setAnalysisError] = useState<string | null>(null);
 
-    const processFile = (file) => {
+    const processFile = async (file: File) => {
         const allowedExtensions = ['.pdf', '.docx', '.txt'];
         const fileExtension = file.name.slice(file.name.lastIndexOf('.')).toLowerCase();
 
-        if (allowedExtensions.includes(fileExtension)) {
-             console.log("File accepted:", file.name);
-             // Logic to read/upload file goes here.
-        } else {
-             console.log("Invalid file type:", file.name);
-             // You could set an error state here to inform the user.
+        if (!allowedExtensions.includes(fileExtension)) {
+            setAnalysisError('Invalid file type. Supported: .pdf, .docx, .txt');
+            return;
+        }
+
+        try {
+            setAnalysisError(null);
+            setUploadedName(file.name);
+            setUploadedText('Extracting text...');
+            const text = await extractTextFromFile(file);
+            setUploadedText(text || '(no text extracted)');
+            // Do NOT call AI here automatically. Wait for explicit user action (Analyze button).
+        } catch (err: any) {
+            setAnalysisError(err?.message || String(err));
+        } finally {
+            // keep analysis loading false; analysis starts when user clicks Analyze
+        }
+    };
+
+    // Trigger analysis when user clicks the Analyze button
+    const analyzeUploaded = async () => {
+        if (!uploadedText) {
+            setAnalysisError('No uploaded document to analyze.');
+            return;
+        }
+
+        try {
+            setAnalysisError(null);
+            setAnalysisText('');
+            setAnalysisLoading(true);
+
+            const prompt = `Analyze the following contract and provide a concise summary of key clauses, potential risks, and suggested edits. Output in ${style} style and ${mode} complexity.\n\nContract:\n${uploadedText}`;
+
+            // Send the extracted text to the server proxy which will call Gemini.
+            const resp = await fetch('/api/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: prompt })
+            });
+
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(`Server error: ${resp.status} ${txt}`);
+            }
+
+            const data = await resp.json();
+            setAnalysisText(data.analysis || JSON.stringify(data));
+        } catch (err: any) {
+            setAnalysisError(err?.message || String(err));
+        } finally {
+            setAnalysisLoading(false);
         }
     };
     
-    const handleDragEnter = (e) => {
+    const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(true);
     };
 
-    const handleDragLeave = (e) => {
+    const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
     };
 
-    const handleDragOver = (e) => {
+    const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation(); // Necessary to allow dropping
     };
 
-    const handleDrop = (e) => {
+    const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
         e.preventDefault();
         e.stopPropagation();
         setIsDragging(false);
@@ -87,7 +148,7 @@ export default function Main() {
         }
     };
     
-    const handleFileSelect = (e) => {
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files && files.length > 0) {
             processFile(files[0]);
@@ -95,7 +156,7 @@ export default function Main() {
     };
 
     const handleUploadClick = () => {
-        fileInputRef.current.click();
+        fileInputRef.current?.click();
     };
 
     return (
@@ -130,18 +191,28 @@ export default function Main() {
                 {/* Uploaded Contract Panel */}
                 <div className="w-full h-[936px] bg-white rounded-[30px] shadow-lg border-[5px] border-black p-6 flex flex-col">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Uploaded Contract</h2>
-                    <div className="flex-grow bg-gray-50 rounded-lg p-4 text-gray-500">
-                        {/* Content of the uploaded contract will be displayed here */}
-                        <p>Your document content will appear here...</p>
+                    <div className="flex-grow bg-gray-50 rounded-lg p-4 text-gray-700 overflow-auto">
+                        {/* Display extracted uploaded contract text */}
+                        {uploadedName && <div className="mb-2 text-sm text-gray-500">{uploadedName}</div>}
+                        <div className="whitespace-pre-wrap text-sm md:text-base">{uploadedText || 'No document uploaded yet.'}</div>
                     </div>
                 </div>
 
                 {/* Analysis and Suggestions Panel */}
                 <div className="w-full h-[936px] bg-white rounded-[30px] shadow-lg border-[5px] border-black p-6 flex flex-col relative">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4 text-center">Analysis and Suggestions</h2>
-                    <div className="flex-grow bg-gray-50 rounded-lg p-4 text-gray-500">
+                    <div className="flex-grow bg-gray-50 rounded-lg p-4 text-gray-700 overflow-auto">
                         {/* AI analysis and suggestions will be displayed here */}
-                        <p>Analysis of your document will appear here...</p>
+                        {analysisError && <div className="text-red-600">{analysisError}</div>}
+                        {analysisLoading && <div className="text-sm text-gray-500">Analyzing document…</div>}
+                        <div className="whitespace-pre-wrap text-sm md:text-base mt-2">{analysisText || (analysisLoading ? '' : 'Analysis of your document will appear here...')}</div>
+
+                        {/* Analyze button: explicit user action to start AI analysis (prevents unexpected pop-ups) */}
+                        <div className="mt-4">
+                            <button onClick={analyzeUploaded} disabled={!uploadedText || analysisLoading} className="px-6 py-3 bg-black text-white rounded-full">
+                                {analysisLoading ? 'Analyzing…' : 'Analyze Document'}
+                            </button>
+                        </div>
                     </div>
                     <button 
                         onClick={handleDownload}
@@ -163,8 +234,8 @@ export default function Main() {
                          {/* Slider Line */}
                         <div className="h-2.5 bg-black absolute top-1/2 left-10 right-10 -translate-y-1/2 mt-4"></div>
                          {modes.map(m => (
-                            <ModeRadio key={m.value} name="mode" value={m.value} label={m.label} checked={mode === m.value} onChange={(e) => setMode(e.target.value)} />
-                         ))}
+                             <ModeRadio key={m.value} name="mode" value={m.value} label={m.label} checked={mode === m.value} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setMode(e.target.value)} />
+                          ))}
                     </div>
                 </div>
 
@@ -177,6 +248,8 @@ export default function Main() {
                     </button>
                 </div>
             </div>
+            
+            {/* Analysis runs automatically when a file is uploaded. */}
         </div>
     );
 }
