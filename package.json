@@ -15,9 +15,14 @@
   },
   "dependencies": {
     "lucide-react": "^0.544.0",
+    "pdfjs-dist": "^5.4.149",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+<<<<<<< HEAD
     "dotenv": "^16.3.1",
+=======
+    "react-dropzone": "^14.3.8",
+>>>>>>> 34e8781187786b8d044639fc924c1cd3cd5bd788
     "vite-plugin-svgr": "^4.5.0"
   },
   "devDependencies": {
